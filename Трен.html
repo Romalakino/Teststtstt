@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренировочный счётчик</title>
+    <style>
+        :root {
+            /* Основные цвета по умолчанию (тема "Полярная ночь") */
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --accent-color: #00ff88;
+            --accent-glow: rgba(0, 255, 136, 0.3);
+            --accent-secondary: #007bff;
+            --text-color: white;
+            --timer-bg: rgba(40, 40, 40, 0.8);
+            --counter-bg: linear-gradient(135deg, #007bff, #0056b3);
+            --counter-glow: rgba(0, 123, 255, 0.5);
+            --btn-start: #28a745;
+            --btn-stop: #ffc107;
+            --btn-reset: #dc3545;
+            --btn-counter: #6c757d;
+            --tab-bg: rgba(40, 40, 40, 0.8);
+            --tab-active: #007bff;
+            --countdown-color: #ff6b6b;
+            --countdown-glow: rgba(255, 107, 107, 0.3);
+        }
+
+        /* Тема "Глубокий океан" */
+        body.theme-blue {
+            --bg-primary: #0a192f;
+            --bg-secondary: #112240;
+            --accent-color: #64ffda;
+            --accent-glow: rgba(100, 255, 218, 0.3);
+            --accent-secondary: #4cc9f0;
+            --counter-bg: linear-gradient(135deg, #4cc9f0, #3a86ff);
+            --counter-glow: rgba(76, 201, 240, 0.5);
+            --btn-start: #38b000;
+            --btn-stop: #ff9e00;
+            --btn-reset: #d00000;
+            --countdown-color: #ff6b6b;
+            --countdown-glow: rgba(255, 107, 107, 0.3);
+        }
+
+        /* Тема "Фиолетовый туман" */
+        body.theme-purple {
+            --bg-primary: #2d1b2e;
+            --bg-secondary: #4a2c4b;
+            --accent-color: #e0aaff;
+            --accent-glow: rgba(224, 170, 255, 0.3);
+            --accent-secondary: #9d4edd;
+            --counter-bg: linear-gradient(135deg, #9d4edd, #7b2cbf);
+            --counter-glow: rgba(157, 78, 221, 0.5);
+            --btn-start: #7209b7;
+            --btn-stop: #f72585;
+            --btn-reset: #b5179e;
+            --countdown-color: #ff70a6;
+            --countdown-glow: rgba(255, 112, 166, 0.3);
+        }
+
+        /* Тема "Изумрудный лес" */
+        body.theme-green {
+            --bg-primary: #1e2a2e;
+            --bg-secondary: #2c3e42;
+            --accent-color: #52b788;
+            --accent-glow: rgba(82, 183, 136, 0.3);
+            --accent-secondary: #40916c;
+            --counter-bg: linear-gradient(135deg, #40916c, #2d6a4f);
+            --counter-glow: rgba(64, 145, 108, 0.5);
+            --btn-start: #2d6a4f;
+            --btn-stop: #fca311;
+            --btn-reset: #d90429;
+            --countdown-color: #ff6b6b;
+            --countdown-glow: rgba(255, 107, 107, 0.3);
+        }
+
+        /* Тема "Закатное небо" */
+        body.theme-sunset {
+            --bg-primary: #3a1c71;
+            --bg-secondary: #d76d77;
+            --accent-color: #ffaf7b;
+            --accent-glow: rgba(255, 175, 123, 0.3);
+            --accent-secondary: #ff6b6b;
+            --counter-bg: linear-gradient(135deg, #ff6b6b, #d76d77);
+            --counter-glow: rgba(255, 107, 107, 0.5);
+            --btn-start: #f72585;
+            --btn-stop: #ff9e00;
+            --btn-reset: #b5179e;
+            --countdown-color: #ff6b6b;
+            --countdown-glow: rgba(255, 107, 107, 0.3);
+        }
+
+        /* Тема "Неоновые огни" */
+        body.theme-neon {
+            --bg-primary: #0f0c29;
+            --bg-secondary: #302b63;
+            --accent-color: #00ff88;
+            --accent-glow: rgba(0, 255, 136, 0.5);
+            --accent-secondary: #8a2be2;
+            --counter-bg: linear-gradient(135deg, #8a2be2, #4b0082);
+            --counter-glow: rgba(138, 43, 226, 0.7);
+            --btn-start: #00ff88;
+            --btn-stop: #ff00ff;
+            --btn-reset: #ff0000;
+            --btn-counter: #00b4d8;
+            --countdown-color: #ff00ff;
+            --countdown-glow: rgba(255, 0, 255, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.4s ease;
+        }
+        
+        body.settings-open .container {
+            transform: translateX(-75%);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        .settings-icon {
+            position: fixed;
+            top: 70px;
+            right: 25px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            z-index: 10;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+        
+        .settings-icon:hover {
+            opacity: 1;
+            transform: rotate(45deg);
+        }
+        
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -75%;
+            width: 75%;
+            height: 100%;
+            background: rgba(30, 30, 35, 0.98);
+            z-index: 100;
+            padding: 30px 20px;
+            overflow-y: auto;
+            transition: right 0.4s ease;
+            box-shadow: -5px 0 25px rgba(0, 0, 0, 0.5);
+        }
+        
+        body.settings-open .settings-panel {
+            right: 0;
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .settings-title {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        .close-settings {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 15px;
+        }
+        
+        .settings-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+        }
+        
+        .theme-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .theme-option {
+            height: 100px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .theme-option:hover {
+            transform: translateY(-3px);
+        }
+        
+        .theme-option.active {
+            border-color: white;
+        }
+        
+        .theme-name {
+            margin-top: 5px;
+            font-weight: bold;
+            z-index: 2;
+        }
+        
+        .theme-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.7;
+        }
+        
+        .tabs {
+            display: flex;
+            background: var(--tab-bg);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: bold;
+        }
+        
+        .tab.active {
+            background: var(--tab-active);
+        }
+        
+        .timer-section {
+            background: var(--timer-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 0 15px var(--accent-glow);
+            transition: all 0.3s ease;
+        }
+        
+        .timer-section.countdown-mode {
+            border-color: var(--countdown-color);
+            box-shadow: 0 0 15px var(--countdown-glow);
+        }
+        
+        .timer-display {
+            font-size: 56px;
+            font-weight: bold;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px var(--accent-glow);
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .timer-display.countdown-mode {
+            color: var(--countdown-color);
+            text-shadow: 0 0 10px var(--countdown-glow);
+        }
+        
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .time-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #444;
+            border-radius: 10px;
+            color: var(--text-color);
+            padding: 10px;
+            font-size: 18px;
+            width: 80px;
+            text-align: center;
+        }
+        
+        .time-input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+        
+        .timer-btn {
+            background: #333;
+            border: none;
+            color: var(--text-color);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .timer-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .timer-btn.set {
+            background: var(--accent-secondary);
+        }
+        
+        .counter-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .counter-circle {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: var(--counter-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 30px var(--counter-glow);
+            transition: all 0.3s;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .counter-circle:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 20px var(--counter-glow);
+        }
+        
+        .counter {
+            font-size: 80px;
+            font-weight: 800;
+            color: var(--text-color);
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px 0;
+            gap: 15px;
+        }
+        
+        .btn-large {
+            background: var(--accent-secondary);
+            border: none;
+            color: var(--text-color);
+            padding: 20px 25px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.3s;
+        }
+        
+        .btn-large:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-reset {
+            background: var(--btn-reset);
+        }
+        
+        .btn-start {
+            background: var(--btn-start);
+        }
+        
+        .btn-start.stop {
+            background: var(--btn-stop);
+        }
+        
+        .btn-counter {
+            background: var(--btn-counter);
+        }
+        
+        .timer-mode-hidden {
+            display: none;
+        }
+
+        /* Убираем синее подсвечивание при нажатии на кнопки */
+        .btn-large, .tab, .timer-btn, .counter-circle, .settings-icon {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            outline: none;
+        }
+
+        /* Для доступности оставляем outline только при фокусе с клавиатуры */
+        .btn-large:focus, .tab:focus, .timer-btn:focus, 
+        .counter-circle:focus, .settings-icon:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
+        }
+        
+        @media (max-width: 480px) {
+            .timer-display {
+                font-size: 48px;
+            }
+            
+            .counter-circle {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .counter {
+                font-size: 60px;
+            }
+            
+            .btn-large {
+                padding: 18px 20px;
+                font-size: 16px;
+            }
+            
+            .settings-panel {
+                width: 85%;
+                right: -85%;
+            }
+            
+            body.settings-open .container {
+                transform: translateX(-85%);
+            }
+            
+            .theme-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .settings-icon {
+                top: 60px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body class="theme-default">
+    <!-- Иконка настроек -->
+    <svg class="settings-icon" onclick="toggleSettings()" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M19.4 15C19.2669 15.3 19.2 15.5 19.2 15.8C19.2 16.2 19.4 16.6 19.7 16.9L19.9 17.1C20.2 17.4 20.4 17.8 20.4 18.3C20.4 18.7 20.3 19.1 20 19.4C19.7 19.7 19.3 20 18.8 20C18.4 20 18 19.9 17.7 19.6L17.5 19.4C17.2 19.1 16.8 18.9 16.4 18.9C16 18.9 15.6 19 15.3 19.3C14.9 19.6 14.7 20 14.7 20.5C14.7 20.9 14.6 21.3 14.3 21.6C14 21.9 13.6 22.1 13.1 22.1C12.7 22.1 12.3 22 12 21.7C11.7 21.4 11.3 21.2 10.9 21.2C10.5 21.2 10.1 21.3 9.8 21.6L9.60001 21.8C9.30001 22.1 8.9 22.2 8.5 22.2C8.1 22.2 7.7 22.1 7.4 21.8C7.1 21.5 6.9 21.1 6.9 20.6C6.9 20.2 7 19.8 7.3 19.5C7.6 19.2 7.9 18.9 8.2 18.7C8.5 18.5 8.7 18.2 8.7 17.8C8.7 17.4 8.6 17 8.3 16.7C8 16.4 7.6 16.2 7.2 16.2C6.8 16.2 6.4 16.3 6.1 16.6L5.9 16.8C5.6 17.1 5.2 17.2 4.8 17.2C4.4 17.2 4 17.1 3.7 16.8C3.4 16.5 3.2 16.1 3.2 15.6C3.2 15.2 3.3 14.8 3.6 14.5C3.9 14.2 4.3 14 4.7 14C5.1 14 5.5 14.1 5.8 14.4C6.1 14.7 6.3 15.1 6.3 15.5C6.3 15.9 6.5 16.3 6.8 16.6C7.1 16.9 7.5 17 7.9 17C8.3 17 8.7 16.9 9 16.6C9.3 16.3 9.5 15.9 9.5 15.5C9.5 15.1 9.6 14.7 9.9 14.4C10.2 14.1 10.6 13.9 11 13.9C11.4 13.9 11.8 14 12.1 14.3C12.4 14.6 12.6 15 12.6 15.5C12.6 15.9 12.7 16.3 13 16.6C13.3 16.9 13.7 17 14.1 17C14.5 17 14.9 16.9 15.2 16.6C15.5 16.3 15.7 15.9 15.7 15.5C15.7 15.1 15.8 14.7 16.1 14.4C16.4 14.1 16.8 13.9 17.2 13.9C17.6 13.9 18 14 18.3 14.3C18.6 14.6 18.8 15 18.8 15.4C18.8 15.8 18.9 16.2 19.2 16.5C19.5 16.8 19.9 17 20.3 17C20.7 17 21.1 16.9 21.4 16.6C21.7 16.3 21.9 15.9 21.9 15.5C21.9 15.1 21.8 14.7 21.5 14.4C21.2 14.1 20.8 13.9 20.4 13.9C20 13.9 19.6 14 19.3 14.3C19 14.6 18.8 15 18.8 15.4C18.8 15.8 18.9 16.2 19.2 16.5C19.5 16.8 19.9 17 20.3 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+    <!-- Панель настроек -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <div class="settings-title">Настройки</div>
+            <button class="close-settings" onclick="toggleSettings()">×</button>
+        </div>
+        
+        <div class="settings-section">
+            <div class="section-title">Выбор темы</div>
+            <div class="theme-options">
+                <div class="theme-option active" onclick="applyTheme('default')">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #1a1a1a, #2d2d2d);"></div>
+                    <span class="theme-name">Полярная ночь</span>
+                </div>
+                <div class="theme-option" onclick="applyTheme('blue')">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #0a192f, #112240);"></div>
+                    <span class="theme-name">Глубокий океан</span>
+                </div>
+                <div class="theme-option" onclick="applyTheme('purple')">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #2d1b2e, #4a2c4b);"></div>
+                    <span class="theme-name">Фиолетовый туман</span>
+                </div>
+                <div class="theme-option" onclick="applyTheme('green')">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #1e2a2e, #2c3e42);"></div>
+                    <span class="theme-name">Изумрудный лес</span>
+                </div>
+                <div class="theme-option" onclick="applyTheme('sunset')">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #3a1c71, #d76d77, #ffaf7b);"></div>
+                    <span class="theme-name">Закатное небо</span>
+                </div>
+                <div class="theme-option" onclick="applyTheme('neon')">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);"></div>
+                    <span class="theme-name">Неоновые огни</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" id="tabTimer">Таймер</div>
+            <div class="tab" id="tabCountdown">Обратный отсчёт</div>
+        </div>
+        
+        <div class="timer-section" id="timerSection">
+            <div class="timer-display" id="timer">00:00</div>
+            <div class="timer-controls" id="timerControls">
+                <input type="number" id="minutesInput" class="time-input timer-mode-hidden" placeholder="Мин" min="0" value="1">
+                <span style="color: white; font-size: 24px; line-height: 40px;" class="timer-mode-hidden">:</span>
+                <input type="number" id="secondsInput" class="time-input timer-mode-hidden" placeholder="Сек" min="0" max="59" value="0">
+                <button class="timer-btn set timer-mode-hidden" onclick="setCustomTime()">Уст.</button>
+            </div>
+        </div>
+        
+        <div class="counter-section">
+            <div class="counter-circle" id="circleBtn">
+                <div class="counter" id="counter">0</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn-large btn-reset" onclick="resetTimer()">Сброс</button>
+            <button class="btn-large btn-start" id="startBtn" onclick="toggleTimer()">Старт</button>
+            <button class="btn-large btn-counter" onclick="resetCounter()">0</button>
+        </div>
+    </div>
+
+    <script>
+        let counter = 0;
+        let seconds = 0;
+        let isRunning = false;
+        let timerInterval;
+        let initialTime = 0;
+        let isCountdownMode = false;
+        
+        const timerElement = document.getElementById('timer');
+        const counterElement = document.getElementById('counter');
+        const startBtn = document.getElementById('startBtn');
+        const minutesInput = document.getElementById('minutesInput');
+        const secondsInput = document.getElementById('secondsInput');
+        const circleBtn = document.getElementById('circleBtn');
+        const tabTimer = document.getElementById('tabTimer');
+        const tabCountdown = document.getElementById('tabCountdown');
+        const timerSection = document.getElementById('timerSection');
+        const timerControls = document.getElementById('timerControls');
+        const settingsPanel = document.getElementById('settingsPanel');
+        
+        function updateTimer() {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function setCustomTime() {
+            const minutes = parseInt(minutesInput.value) || 0;
+            const secs = parseInt(secondsInput.value) || 0;
+            initialTime = minutes * 60 + secs;
+            seconds = initialTime;
+            updateTimer();
+        }
+        
+        function toggleTimer() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                startBtn.textContent = 'Старт';
+                startBtn.classList.remove('stop');
+            } else {
+                if (isCountdownMode && seconds === 0) {
+                    setCustomTime();
+                }
+                
+                timerInterval = setInterval(() => {
+                    if (isCountdownMode) {
+                        if (seconds > 0) {
+                            seconds--;
+                            updateTimer();
+                        } else {
+                            clearInterval(timerInterval);
+                            isRunning = false;
+                            startBtn.textContent = 'Старт';
+                            startBtn.classList.remove('stop');
+                            if (navigator.vibrate) {
+                                navigator.vibrate([200, 100, 200, 100, 200]);
+                            }
+                        }
+                    } else {
+                        seconds++;
+                        updateTimer();
+                    }
+                }, 1000);
+                startBtn.textContent = 'Пауза';
+                startBtn.classList.add('stop');
+            }
+            isRunning = !isRunning;
+        }
+        
+        function resetTimer() {
+            clearInterval(timerInterval);
+            seconds = isCountdownMode ? initialTime : 0;
+            isRunning = false;
+            updateTimer();
+            startBtn.textContent = 'Старт';
+            startBtn.classList.remove('stop');
+        }
+        
+        function incrementCounter() {
+            counter++;
+            counterElement.textContent = counter;
+            
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+        
+        function resetCounter() {
+            counter = 0;
+            counterElement.textContent = counter;
+            
+            if (navigator.vibrate) {
+                navigator.vibrate(100);
+            }
+        }
+        
+        function switchMode(isCountdown) {
+            isCountdownMode = isCountdown;
+            resetTimer();
+            
+            if (isCountdown) {
+                tabCountdown.classList.add('active');
+                tabTimer.classList.remove('active');
+                timerElement.classList.add('countdown-mode');
+                timerSection.classList.add('countdown-mode');
+                
+                document.querySelectorAll('.timer-mode-hidden').forEach(el => {
+                    el.style.display = 'inline-block';
+                });
+            } else {
+                tabTimer.classList.add('active');
+                tabCountdown.classList.remove('active');
+                timerElement.classList.remove('countdown-mode');
+                timerSection.classList.remove('countdown-mode');
+                
+                document.querySelectorAll('.timer-mode-hidden').forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+        }
+        
+        function toggleSettings() {
+            document.body.classList.toggle('settings-open');
+        }
+        
+        function applyTheme(themeName) {
+            // Удаляем все классы тем
+            document.body.classList.remove('theme-default', 'theme-blue', 'theme-purple', 'theme-green', 'theme-sunset', 'theme-neon');
+            
+            // Добавляем выбранную тему
+            document.body.classList.add(`theme-${themeName}`);
+            
+            // Обновляем активную тему в настройках
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Сохраняем выбор в localStorage
+            localStorage.setItem('selectedTheme', themeName);
+            
+            // Закрываем панель настроек
+            toggleSettings();
+        }
+        
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+            
+            // Удаляем все классы тем
+            document.body.classList.remove('theme-default', 'theme-blue', 'theme-purple', 'theme-green', 'theme-sunset', 'theme-neon');
+            
+            // Добавляем сохраненную тему
+            document.body.classList.add(`theme-${savedTheme}`);
+            
+            // Отмечаем активную тему
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.onclick.toString().includes(`'${savedTheme}'`)) {
+                    option.classList.add('active');
+                }
+            });
+        }
+        
+        // Инициализация
+        circleBtn.addEventListener('click', incrementCounter);
+        
+        // Обработчики вкладок
+        tabTimer.addEventListener('click', () => switchMode(false));
+        tabCountdown.addEventListener('click', () => switchMode(true));
+        
+        // Инициализируем при загрузке
+        window.onload = function() {
+            updateTimer();
+            loadSavedTheme();
+            switchMode(false);
+        };
+    </script>
+</body>
+</html>
